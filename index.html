@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>PowerCalc Pro</title>
+
+<!-- Mathematical calculation library -->
+<script src="https://cdn.jsdelivr.net/npm/mathjs@14.0.1/lib/browser/math.js"></script>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #10131c;
+    color: white;
+}
+
+.container {
+    max-width: 650px;
+    margin: auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #00e5ff;
+}
+
+.subtitle {
+    text-align: center;
+    color: #aaa;
+}
+
+.calculator {
+    background: #1c2130;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 0 20px #000;
+}
+
+input {
+    width: 100%;
+    padding: 18px;
+    font-size: 22px;
+    border: none;
+    border-radius: 10px;
+    background: #0b0e15;
+    color: white;
+    outline: none;
+}
+
+button {
+    padding: 15px;
+    margin: 4px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    background: #30384d;
+    color: white;
+    cursor: pointer;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin-top: 15px;
+}
+
+.operator {
+    background: #006f8a;
+}
+
+.equal {
+    background: #008f5a;
+}
+
+.clear {
+    background: #b32635;
+}
+
+.result {
+    margin-top: 20px;
+    background: #0b0e15;
+    padding: 15px;
+    border-radius: 10px;
+    overflow-wrap: break-word;
+}
+
+.history {
+    margin-top: 20px;
+    background: #151a27;
+    padding: 15px;
+    border-radius: 10px;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.history p {
+    border-bottom: 1px solid #333;
+    padding-bottom: 8px;
+}
+
+.examples {
+    margin-top: 20px;
+    line-height: 1.8;
+    color: #bbb;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>⚡ PowerCalc Pro</h1>
+
+<p class="subtitle">
+Advanced Scientific Calculator
+</p>
+
+<div class="calculator">
+
+<input
+id="expression"
+type="text"
+placeholder="Enter mathematical expression..."
+autocomplete="off"
+>
+
+<div class="buttons">
+
+<button onclick="insert('7')">7</button>
+<button onclick="insert('8')">8</button>
+<button onclick="insert('9')">9</button>
+<button class="operator" onclick="insert('/')">÷</button>
+
+<button onclick="insert('4')">4</button>
+<button onclick="insert('5')">5</button>
+<button onclick="insert('6')">6</button>
+<button class="operator" onclick="insert('*')">×</button>
+
+<button onclick="insert('1')">1</button>
+<button onclick="insert('2')">2</button>
+<button onclick="insert('3')">3</button>
+<button class="operator" onclick="insert('-')">−</button>
+
+<button onclick="insert('0')">0</button>
+<button onclick="insert('.')">.</button>
+<button class="equal" onclick="calculate()">=</button>
+<button class="operator" onclick="insert('+')">+</button>
+
+<button onclick="insert('(')">(</button>
+<button onclick="insert(')')">)</button>
+<button onclick="insert('^')">xʸ</button>
+<button onclick="insert('sqrt(')">√</button>
+
+<button onclick="insert('sin(')">sin</button>
+<button onclick="insert('cos(')">cos</button>
+<button onclick="insert('tan(')">tan</button>
+<button onclick="insert('log10(')">log</button>
+
+<button onclick="insert('ln(')">ln</button>
+<button onclick="insert('pi')">π</button>
+<button onclick="insert('e')">e</button>
+<button onclick="insert('!')">n!</button>
+
+<button onclick="insert('exp(')">exp</button>
+<button onclick="insert('abs(')">abs</button>
+<button onclick="insert('mod')">mod</button>
+<button onclick="insert(',')">,</button>
+
+<button class="clear" onclick="clearAll()">CLEAR</button>
+<button onclick="backspace()">⌫</button>
+<button onclick="insert('ans')">ANS</button>
+<button onclick="calculate()">ENTER</button>
+
+</div>
+
+<div class="result">
+
+<strong>Result:</strong>
+
+<div id="result">
+Your answer will appear here.
+</div>
+
+</div>
+
+</div>
+
+<div class="examples">
+
+<h3>Example Calculations</h3>
+
+<p>• (25 + 15) × 3</p>
+
+<p>• sqrt(144) + 5^2</p>
+
+<p>• sin(pi / 2)</p>
+
+<p>• log10(1000)</p>
+
+<p>• factorial(10)</p>
+
+<p>• det([[1,2],[3,4]])</p>
+
+<p>• 2x + 5 = 15 → use the equation solver below</p>
+
+</div>
+
+<div class="history">
+
+<h3>Calculation History</h3>
+
+<div id="historyList">
+No calculations yet.
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let lastAnswer = 0;
+
+const expressionInput =
+document.getElementById("expression");
+
+const resultBox =
+document.getElementById("result");
+
+const historyList =
+document.getElementById("historyList");
+
+function insert(value) {
+
+    expressionInput.value += value;
+
+    expressionInput.focus();
+
+}
+
+function clearAll() {
+
+    expressionInput.value = "";
+
+    resultBox.innerText =
+    "Your answer will appear here.";
+
+}
+
+function backspace() {
+
+    expressionInput.value =
+    expressionInput.value.slice(0, -1);
+
+}
+
+function calculate() {
+
+    const expression =
+    expressionInput.value.trim();
+
+    if (!expression) {
+
+        resultBox.innerText =
+        "Enter an expression.";
+
+        return;
+
+    }
+
+    try {
+
+        const result =
+        math.evaluate(expression, {
+            ans: lastAnswer
+        });
+
+        const formatted =
+        math.format(result, {
+            precision: 14
+        });
+
+        resultBox.innerText = formatted;
+
+        lastAnswer = result;
+
+        addHistory(expression, formatted);
+
+    } catch (error) {
+
+        resultBox.innerText =
+        "Invalid expression. Please check your input.";
+
+    }
+
+}
+
+function addHistory(expression, result) {
+
+    if (historyList.innerText ===
+    "No calculations yet.") {
+
+        historyList.innerHTML = "";
+
+    }
+
+    const item =
+    document.createElement("p");
+
+    item.textContent =
+    expression + " = " + result;
+
+    historyList.prepend(item);
+
+}
+
+expressionInput.addEventListener("keydown", function(event) {
+
+    if (event.key === "Enter") {
+
+        calculate();
+
+    }
+
+});
+
+</script>
+
+</body>
+  </html>
