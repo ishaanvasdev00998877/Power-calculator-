@@ -6,7 +6,6 @@
 
 <title>PowerCalc Pro</title>
 
-<!-- Mathematical calculation library -->
 <script src="https://cdn.jsdelivr.net/npm/mathjs@14.0.1/lib/browser/math.js"></script>
 
 <style>
@@ -45,6 +44,7 @@ h1 {
     box-shadow: 0 0 20px #000;
 }
 
+/* Calculator display */
 input {
     width: 100%;
     padding: 18px;
@@ -54,6 +54,15 @@ input {
     background: #0b0e15;
     color: white;
     outline: none;
+
+    /* Prevent mobile browsers from showing their keyboard */
+    caret-color: transparent;
+}
+
+/* Prevent selection/editing behavior from feeling like a normal text box */
+input[readonly] {
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 button {
@@ -65,6 +74,7 @@ button {
     background: #30384d;
     color: white;
     cursor: pointer;
+    touch-action: manipulation;
 }
 
 button:active {
@@ -132,11 +142,21 @@ Advanced Scientific Calculator
 
 <div class="calculator">
 
+<!--
+    READONLY + INPUTMODE NONE
+    prevents the phone/laptop virtual keyboard
+    from appearing when calculator buttons are used.
+-->
 <input
-id="expression"
-type="text"
-placeholder="Enter mathematical expression..."
-autocomplete="off"
+    id="expression"
+    type="text"
+    placeholder="Enter mathematical expression..."
+    autocomplete="off"
+    autocorrect="off"
+    autocapitalize="off"
+    spellcheck="false"
+    readonly
+    inputmode="none"
 >
 
 <div class="buttons">
@@ -205,17 +225,11 @@ Your answer will appear here.
 <h3>Example Calculations</h3>
 
 <p>• (25 + 15) × 3</p>
-
 <p>• sqrt(144) + 5^2</p>
-
 <p>• sin(pi / 2)</p>
-
 <p>• log10(1000)</p>
-
 <p>• factorial(10)</p>
-
 <p>• det([[1,2],[3,4]])</p>
-
 <p>• 2x + 5 = 15 → use the equation solver below</p>
 
 </div>
@@ -237,47 +251,70 @@ No calculations yet.
 let lastAnswer = 0;
 
 const expressionInput =
-document.getElementById("expression");
+    document.getElementById("expression");
 
 const resultBox =
-document.getElementById("result");
+    document.getElementById("result");
 
 const historyList =
-document.getElementById("historyList");
+    document.getElementById("historyList");
+
+
+/* =========================================
+   INSERT CALCULATOR BUTTON VALUE
+   ========================================= */
 
 function insert(value) {
 
+    /*
+        Because the input is readonly, we control
+        everything through JavaScript.
+    */
+
     expressionInput.value += value;
 
-    expressionInput.focus();
-
 }
+
+
+/* =========================================
+   CLEAR
+   ========================================= */
 
 function clearAll() {
 
     expressionInput.value = "";
 
     resultBox.innerText =
-    "Your answer will appear here.";
+        "Your answer will appear here.";
 
 }
+
+
+/* =========================================
+   BACKSPACE
+   ========================================= */
 
 function backspace() {
 
     expressionInput.value =
-    expressionInput.value.slice(0, -1);
+        expressionInput.value.slice(0, -1);
 
 }
+
+
+/* =========================================
+   CALCULATE
+   ========================================= */
 
 function calculate() {
 
     const expression =
-    expressionInput.value.trim();
+        expressionInput.value.trim();
 
     if (!expression) {
 
         resultBox.innerText =
-        "Enter an expression.";
+            "Enter an expression.";
 
         return;
 
@@ -286,60 +323,110 @@ function calculate() {
     try {
 
         const result =
-        math.evaluate(expression, {
-            ans: lastAnswer
-        });
+            math.evaluate(expression, {
+                ans: lastAnswer
+            });
 
         const formatted =
-        math.format(result, {
-            precision: 14
-        });
-
-        resultBox.innerText = formatted;
-
-        lastAnswer = result;
-
-        addHistory(expression, formatted);
-
-    } catch (error) {
+            math.format(result, {
+                precision: 14
+            });
 
         resultBox.innerText =
-        "Invalid expression. Please check your input.";
+            formatted;
+
+        lastAnswer =
+            result;
+
+        addHistory(
+            expression,
+            formatted
+        );
+
+    }
+
+    catch (error) {
+
+        resultBox.innerText =
+            "Invalid expression. Please check your input.";
 
     }
 
 }
 
+
+/* =========================================
+   HISTORY
+   ========================================= */
+
 function addHistory(expression, result) {
 
-    if (historyList.innerText ===
-    "No calculations yet.") {
+    if (
+        historyList.innerText ===
+        "No calculations yet."
+    ) {
 
         historyList.innerHTML = "";
 
     }
 
     const item =
-    document.createElement("p");
+        document.createElement("p");
 
     item.textContent =
-    expression + " = " + result;
+        expression + " = " + result;
 
     historyList.prepend(item);
 
 }
 
-expressionInput.addEventListener("keydown", function(event) {
 
-    if (event.key === "Enter") {
+/* =========================================
+   EXTRA PROTECTION
+   =========================================
 
-        calculate();
+   Prevent keyboard input if a physical
+   keyboard is connected.
+
+   The calculator buttons still work normally.
+   ========================================= */
+
+expressionInput.addEventListener(
+    "keydown",
+    function(event) {
+
+        event.preventDefault();
 
     }
+);
 
-});
+
+/* Prevent paste */
+expressionInput.addEventListener(
+    "paste",
+    function(event) {
+
+        event.preventDefault();
+
+    }
+);
+
+
+/* Prevent typing */
+expressionInput.addEventListener(
+    "beforeinput",
+    function(event) {
+
+        event.preventDefault();
+
+    }
+);
 
 </script>
 
 </body>
-  </html>
+</html>
+
+This version makes the calculator display button-controlled only: tapping "7", "+", "sin", etc. inserts the value through JavaScript, while the normal phone keyboard should not appear. It also blocks physical-keyboard typing and paste into the calculator display.
+
+One limitation: browser behavior can vary between devices, so "readonly" + "inputmode="none"" is the practical approach, but no ordinary webpage can guarantee identical keyboard behavior in every browser.
